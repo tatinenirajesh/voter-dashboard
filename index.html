@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edepugallu Gram Panchayat Voter Dashboard (2026)</title>
+    <title>Edupugallu Gram Panchayat Voter Dashboard (2026)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
@@ -28,12 +28,12 @@
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
             <div>
-                <h1 class="text-xl font-bold tracking-wide">🗳️ Edepugallu Gram Panchayat Voter Dashboard</h1>
+                <h1 class="text-xl font-bold tracking-wide">🗳️ Edupugallu Gram Panchayat Voter Dashboard</h1>
                 <p class="text-xs text-slate-400">Kankipadu Mandal, Krishna District • 2026 Electoral Roll (Wards 1–14)</p>
             </div>
             <div class="flex items-center gap-3">
                 <span id="sync-status" class="text-xs px-2.5 py-1 bg-emerald-600 text-white rounded-full font-medium flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Connected to Cloud API
+                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Connected
                 </span>
                 <button onclick="fetchCloudData()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-xs font-semibold rounded-lg shadow transition flex items-center gap-1.5">
                     🔄 Sync Data
@@ -104,14 +104,14 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Slicer 1: Ward No -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">1. Ward No Slicer</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">1. Ward No/వార్డ్ నo</label>
                     <select id="slicer-ward" onchange="applyFilters()" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
                         <option value="">All Wards (1-14)</option>
                     </select>
                 </div>
                 <!-- Slicer 2: Gender -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">2. Gender Slicer</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">2. Gender/లింగం</label>
                     <select id="slicer-gender" onchange="applyFilters()" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
                         <option value="">All Genders</option>
                         <option value="Male">Male</option>
@@ -120,7 +120,7 @@
                 </div>
                 <!-- Slicer 3: Age Group -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">3. Age Group Slicer</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">3. Age Group/వయసుు</label>
                     <select id="slicer-age" onchange="applyFilters()" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
                         <option value="">All Age Brackets</option>
                         <option value="18-30">18 - 30 Yrs</option>
@@ -131,17 +131,17 @@
                 </div>
                 <!-- Slicer 4: House No -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">4. House No Slicer</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">4. House No/ఇంటి నం.</label>
                     <input type="text" id="slicer-house" oninput="applyFilters()" placeholder="Filter House No (e.g., 1-1, PLOT 65)" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
                 </div>
                 <!-- Slicer 5: EPIC ID -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">5. EPIC Voter ID Slicer</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">5. EPIC Voter ID/ఓటర్ ఐడీ</label>
                     <input type="text" id="slicer-epic" oninput="applyFilters()" placeholder="Search EPIC ID (e.g., XNC1943083)" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
                 </div>
                 <!-- Slicer 6: G.P. Serial No Range -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">6. G.P. Serial No Slicer (1-6958)</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">6. G.P. Serial No/సీరియల్ నo. (1-6958)</label>
                     <div class="flex gap-2">
                         <input type="number" id="slicer-sno-min" oninput="applyFilters()" placeholder="From S.No" class="w-1/2 p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
                         <input type="number" id="slicer-sno-max" oninput="applyFilters()" placeholder="To S.No" class="w-1/2 p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
@@ -213,7 +213,7 @@
 
     <!-- Footer -->
     <footer class="bg-slate-900 text-slate-400 text-xs py-4 text-center mt-auto">
-        <p>© 2026 Edepugallu Gram Panchayat • Kankipadu Mandal • All Rights Reserved</p>
+        <p>© 2026 Edupugallu Gram Panchayat • Kankipadu Mandal • All Rights Reserved</p>
     </footer>
 
     <!-- Application Logic Script -->
@@ -242,7 +242,7 @@
                 if (Array.isArray(data) && data.length > 0) {
                     allVoters = data;
                     filteredVoters = [...allVoters];
-                    statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Connected to Cloud API`;
+                    statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Connected`;
                     statusEl.className = "text-xs px-2.5 py-1 bg-emerald-600 text-white rounded-full font-medium flex items-center gap-1.5";
                     initSlicers();
                     applyFilters();
@@ -435,44 +435,59 @@
             const ws = XLSX.utils.json_to_sheet(filteredVoters);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Filtered Voters");
-            XLSX.writeFile(wb, "Edepugallu_Filtered_Voters_2026.xlsx");
+            XLSX.writeFile(wb, "Edupugallu_Filtered_Voters_2026.xlsx");
         }
 
-        // Speech Recognition (Telugu & English)
+        // Cross-Browser Mobile & Desktop Speech Recognition (Telugu & English)
         let recognition = null;
+        let isListening = false;
+
         function toggleVoiceSearch() {
             const micBtn = document.getElementById('mic-btn');
             const micIcon = document.getElementById('mic-icon');
             const micText = document.getElementById('mic-text');
             const transcriptDiv = document.getElementById('voice-transcript');
+            const globalSearch = document.getElementById('global-search');
 
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert("Speech recognition is not supported in this browser. Please use Google Chrome.");
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                alert("Speech recognition is not supported in this browser. Please use Google Chrome or Safari.");
                 return;
             }
 
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (isListening && recognition) {
+                recognition.stop();
+                return;
+            }
+
             recognition = new SpeechRecognition();
             recognition.lang = 'te-IN'; // Default to Telugu, handles English words too
             recognition.continuous = false;
-            recognition.interimResults = false;
+            recognition.interimResults = true;
 
-            micBtn.classList.add('mic-active');
-            micIcon.innerText = '🔴';
-            micText.innerText = 'Listening... Speak now';
-            transcriptDiv.classList.remove('hidden');
-            transcriptDiv.innerText = "Listening in Telugu / English...";
+            recognition.onstart = function() {
+                isListening = true;
+                micBtn.classList.add('mic-active');
+                micIcon.innerText = '🔴';
+                micText.innerText = 'Listening... Speak now';
+                transcriptDiv.classList.remove('hidden');
+                transcriptDiv.innerText = "Listening in Telugu / English...";
+            };
 
             recognition.onresult = function(event) {
-                const speechToText = event.results[0][0].transcript;
-                document.getElementById('global-search').value = speechToText;
+                let speechToText = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    speechToText += event.results[i][0].transcript;
+                }
+                globalSearch.value = speechToText;
                 transcriptDiv.innerText = `Heard: "${speechToText}"`;
                 applyFilters();
-                stopMicUI();
             };
 
             recognition.onerror = function(event) {
                 console.error("Speech recognition error", event.error);
+                transcriptDiv.innerText = "Error recognizing speech. Try again.";
                 stopMicUI();
             };
 
@@ -480,16 +495,30 @@
                 stopMicUI();
             };
 
-            recognition.start();
+            try {
+                recognition.start();
+            } catch (err) {
+                console.error("Speech start error:", err);
+                stopMicUI();
+            }
         }
 
         function stopMicUI() {
+            isListening = false;
             const micBtn = document.getElementById('mic-btn');
             const micIcon = document.getElementById('mic-icon');
             const micText = document.getElementById('mic-text');
+            const transcriptDiv = document.getElementById('voice-transcript');
+
             micBtn.classList.remove('mic-active');
             micIcon.innerText = '🎙️';
             micText.innerText = 'Speech Search (Telugu/English)';
+            
+            setTimeout(() => {
+                if (!isListening && transcriptDiv) {
+                    transcriptDiv.classList.add('hidden');
+                }
+            }, 3000);
         }
     </script>
 </body>
