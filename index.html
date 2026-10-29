@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edepugallu Gram Panchayat Voter Dashboard (2026)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (xlsx) for optional local backup export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .mic-active { animation: pulse-ring 1.5s infinite ease-in-out; background-color: #ef4444 !important; color: white !important; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div>
+                <h1 class="text-xl font-bold tracking-wide">🗳️ Edepugallu Gram Panchayat Voter Dashboard</h1>
+                <p class="text-xs text-slate-400">Kankipadu Mandal, Krishna District • 2026 Electoral Roll (Wards 1–14)</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="sync-status" class="text-xs px-2.5 py-1 bg-emerald-600 text-white rounded-full font-medium flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Connected to Cloud API
+                </span>
+                <button onclick="fetchCloudData()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-xs font-semibold rounded-lg shadow transition flex items-center gap-1.5">
+                    🔄 Sync Data
+                </button>
+                <button onclick="exportFilteredExcel()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold rounded-lg shadow transition flex items-center gap-1.5">
+                    📥 Export Filtered Excel
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
+
+        <!-- Voice Search & Global Search Banner -->
+        <section class="glass-card p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex-grow flex items-center gap-3 min-w-[280px]">
+                <div class="relative flex-grow">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">🔍</span>
+                    <input type="text" id="global-search" oninput="applyFilters()" placeholder="Search by Voter Name, Relative Name, or House No..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="mic-btn" onclick="toggleVoiceSearch()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition flex items-center gap-2 shadow-sm">
+                    <span id="mic-icon">🎙️</span> <span id="mic-text">Speech Search (Telugu/English)</span>
+                </button>
+                <div id="voice-transcript" class="text-xs italic text-blue-600 font-medium hidden">Listening...</div>
+            </div>
+        </section>
+
+        <!-- KPI Metric Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-600 flex justify-between items-center">
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase">Total Voters</p>
+                    <h3 id="kpi-total" class="text-2xl font-bold text-slate-900 mt-1">6,958</h3>
+                </div>
+                <div class="p-3 bg-blue-50 text-blue-600 rounded-lg text-xl">👥</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-indigo-600 flex justify-between items-center">
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase">Male Voters</p>
+                    <h3 id="kpi-male" class="text-2xl font-bold text-slate-900 mt-1">3,312</h3>
+                </div>
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg text-xl">👨</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-pink-600 flex justify-between items-center">
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase">Female Voters</p>
+                    <h3 id="kpi-female" class="text-2xl font-bold text-slate-900 mt-1">3,646</h3>
+                </div>
+                <div class="p-3 bg-pink-50 text-pink-600 rounded-lg text-xl">👩</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-600 flex justify-between items-center">
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase">Active Wards</p>
+                    <h3 id="kpi-wards" class="text-2xl font-bold text-slate-900 mt-1">14</h3>
+                </div>
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg text-xl">📍</div>
+            </div>
+        </section>
+
+        <!-- Slicers / Filters Section (6 Slicers) -->
+        <section class="glass-card p-5 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                🎛️ Interactive Slicers
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Slicer 1: Ward No -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">1. Ward No Slicer</label>
+                    <select id="slicer-ward" onchange="applyFilters()" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Wards (1-14)</option>
+                    </select>
+                </div>
+                <!-- Slicer 2: Gender -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">2. Gender Slicer</label>
+                    <select id="slicer-gender" onchange="applyFilters()" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Genders</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                <!-- Slicer 3: Age Group -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">3. Age Group Slicer</label>
+                    <select id="slicer-age" onchange="applyFilters()" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Age Brackets</option>
+                        <option value="18-30">18 - 30 Yrs</option>
+                        <option value="31-45">31 - 45 Yrs</option>
+                        <option value="46-60">46 - 60 Yrs</option>
+                        <option value="60+">60+ Yrs (Senior Citizens)</option>
+                    </select>
+                </div>
+                <!-- Slicer 4: House No -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">4. House No Slicer</label>
+                    <input type="text" id="slicer-house" oninput="applyFilters()" placeholder="Filter House No (e.g., 1-1, PLOT 65)" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+                <!-- Slicer 5: EPIC ID -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">5. EPIC Voter ID Slicer</label>
+                    <input type="text" id="slicer-epic" oninput="applyFilters()" placeholder="Search EPIC ID (e.g., XNC1943083)" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                </div>
+                <!-- Slicer 6: G.P. Serial No Range -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">6. G.P. Serial No Slicer (1-6958)</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="slicer-sno-min" oninput="applyFilters()" placeholder="From S.No" class="w-1/2 p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                        <input type="number" id="slicer-sno-max" oninput="applyFilters()" placeholder="To S.No" class="w-1/2 p-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-between items-center pt-3 border-t border-slate-100">
+                <span id="filter-count" class="text-xs text-slate-500 font-medium">Showing 6,958 of 6,958 records</span>
+                <button onclick="resetFilters()" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-medium transition">
+                    Reset All Filters
+                </button>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
+                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 w-full text-left">Gender Distribution</h3>
+                <div class="w-full h-64 flex justify-center items-center">
+                    <canvas id="genderChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 lg:col-span-2 flex flex-col">
+                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 w-full text-left">Ward-wise Voter Breakdown (Wards 1–14)</h3>
+                <div class="w-full h-64">
+                    <canvas id="wardChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Voter Data Table Section -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Voter Master Database</h3>
+                <span id="table-record-count" class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-semibold">6,958 Records</span>
+            </div>
+            <div class="overflow-x-auto max-h-[500px]">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead class="bg-slate-100 text-slate-700 uppercase tracking-wider sticky top-0 z-10">
+                        <tr>
+                            <th class="p-3 border-b">G.P. S.No</th>
+                            <th class="p-3 border-b">EPIC Voter ID</th>
+                            <th class="p-3 border-b">Voter Name (Telugu)</th>
+                            <th class="p-3 border-b">Voter Name (English)</th>
+                            <th class="p-3 border-b">Relation</th>
+                            <th class="p-3 border-b">Relative Name (Telugu)</th>
+                            <th class="p-3 border-b text-center">Age</th>
+                            <th class="p-3 border-b text-center">Gender</th>
+                            <th class="p-3 border-b text-center">House No</th>
+                            <th class="p-3 border-b text-center">Ward No</th>
+                        </tr>
+                    </thead>
+                    <tbody id="voter-table-body" class="divide-y divide-slate-200">
+                        <!-- Populated dynamically via JS -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination Footer -->
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs">
+                <span id="pagination-info" class="text-slate-600 font-medium">Page 1 of 1</span>
+                <div class="flex gap-2">
+                    <button onclick="changePage(-1)" id="prev-btn" class="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50">Previous</button>
+                    <button onclick="changePage(1)" id="next-btn" class="px-3 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-50">Next</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-4 text-center mt-auto">
+        <p>© 2026 Edepugallu Gram Panchayat • Kankipadu Mandal • All Rights Reserved</p>
+    </footer>
+
+    <!-- Application Logic Script -->
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbwww-pKt8WS4QterRqHu_OEow-u2QxPCB28GVTpCe9EtXfFQ1UJpZBWn7MU0IQ8LCsWXw/exec";
+        
+        let allVoters = [];
+        let filteredVoters = [];
+        let currentPage = 1;
+        const rowsPerPage = 50;
+
+        let genderChart = null;
+        let wardChart = null;
+
+        // Fetch data on load
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchCloudData();
+        });
+
+        async function fetchCloudData() {
+            const statusEl = document.getElementById('sync-status');
+            statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-400 animate-ping"></span> Fetching Cloud Data...`;
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    allVoters = data;
+                    filteredVoters = [...allVoters];
+                    statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Connected to Cloud API`;
+                    statusEl.className = "text-xs px-2.5 py-1 bg-emerald-600 text-white rounded-full font-medium flex items-center gap-1.5";
+                    initSlicers();
+                    applyFilters();
+                } else {
+                    throw new Error("Invalid format");
+                }
+            } catch (err) {
+                console.error("Cloud fetch error:", err);
+                statusEl.innerHTML = `⚠️ Failed to Sync API`;
+                statusEl.className = "text-xs px-2.5 py-1 bg-rose-600 text-white rounded-full font-medium flex items-center gap-1.5";
+            }
+        }
+
+        function initSlicers() {
+            const wards = [...new Set(allVoters.map(v => v["Ward No"]))].sort((a,b) => Number(a)-Number(b));
+            const wardSelect = document.getElementById('slicer-ward');
+            wardSelect.innerHTML = '<option value="">All Wards (1-14)</option>';
+            wards.forEach(w => {
+                if(w) wardSelect.innerHTML += `<option value="${w}">Ward ${w}</option>`;
+            });
+        }
+
+        function applyFilters() {
+            const wardVal = document.getElementById('slicer-ward').value;
+            const genderVal = document.getElementById('slicer-gender').value;
+            const ageVal = document.getElementById('slicer-age').value;
+            const houseVal = document.getElementById('slicer-house').value.toLowerCase().trim();
+            const epicVal = document.getElementById('slicer-epic').value.toLowerCase().trim();
+            const snoMin = document.getElementById('slicer-sno-min').value;
+            const snoMax = document.getElementById('slicer-sno-max').value;
+            const globalSearch = document.getElementById('global-search').value.toLowerCase().trim();
+
+            filteredVoters = allVoters.filter(v => {
+                // Ward No Slicer
+                if (wardVal && String(v["Ward No"]) !== String(wardVal)) return false;
+                
+                // Gender Slicer
+                if (genderVal && String(v["Gender"]).toLowerCase() !== genderVal.toLowerCase()) return false;
+                
+                // Age Group Slicer
+                const age = Number(v["Age"]);
+                if (ageVal) {
+                    if (ageVal === '18-30' && (age < 18 || age > 30)) return false;
+                    if (ageVal === '31-45' && (age < 31 || age > 45)) return false;
+                    if (ageVal === '46-60' && (age < 46 || age > 60)) return false;
+                    if (ageVal === '60+' && age < 61) return false;
+                }
+
+                // House No Slicer
+                if (houseVal && !String(v["House No"]).toLowerCase().includes(houseVal)) return false;
+
+                // EPIC ID Slicer
+                if (epicVal && !String(v["EPIC Voter ID"]).toLowerCase().includes(epicVal)) return false;
+
+                // Serial No Slicer Range
+                const sno = Number(v["G.P. S.No"]);
+                if (snoMin && sno < Number(snoMin)) return false;
+                if (snoMax && sno > Number(snoMax)) return false;
+
+                // Global Search
+                if (globalSearch) {
+                    const matchText = `${v["Voter Name (Telugu)"]} ${v["Voter Name (English)"]} ${v["Relative Name (Telugu)"]} ${v["Relative Name (English)"]} ${v["House No"]}`.toLowerCase();
+                    if (!matchText.includes(globalSearch)) return false;
+                }
+
+                return true;
+            });
+
+            currentPage = 1;
+            updateKPIs();
+            updateCharts();
+            renderTable();
+        }
+
+        function resetFilters() {
+            document.getElementById('slicer-ward').value = "";
+            document.getElementById('slicer-gender').value = "";
+            document.getElementById('slicer-age').value = "";
+            document.getElementById('slicer-house').value = "";
+            document.getElementById('slicer-epic').value = "";
+            document.getElementById('slicer-sno-min').value = "";
+            document.getElementById('slicer-sno-max').value = "";
+            document.getElementById('global-search').value = "";
+            applyFilters();
+        }
+
+        function updateKPIs() {
+            const total = filteredVoters.length;
+            const male = filteredVoters.filter(v => String(v["Gender"]).toLowerCase() === 'male').length;
+            const female = filteredVoters.filter(v => String(v["Gender"]).toLowerCase() === 'female').length;
+            const wards = new Set(filteredVoters.map(v => v["Ward No"])).size;
+
+            document.getElementById('kpi-total').innerText = total.toLocaleString();
+            document.getElementById('kpi-male').innerText = male.toLocaleString();
+            document.getElementById('kpi-female').innerText = female.toLocaleString();
+            document.getElementById('kpi-wards').innerText = wards;
+            document.getElementById('filter-count').innerText = `Showing ${total.toLocaleString()} of ${allVoters.length.toLocaleString()} records`;
+            document.getElementById('table-record-count').innerText = `${total.toLocaleString()} Records`;
+        }
+
+        function updateCharts() {
+            const maleCount = filteredVoters.filter(v => String(v["Gender"]).toLowerCase() === 'male').length;
+            const femaleCount = filteredVoters.filter(v => String(v["Gender"]).toLowerCase() === 'female').length;
+
+            // Gender Chart
+            const ctxGender = document.getElementById('genderChart').getContext('2d');
+            if (genderChart) genderChart.destroy();
+            genderChart = new Chart(ctxGender, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Male', 'Female'],
+                    datasets: [{
+                        data: [maleCount, femaleCount],
+                        backgroundColor: ['#3b82f6', '#ec4899'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Ward Chart
+            const wardMap = {};
+            filteredVoters.forEach(v => {
+                const w = `Ward ${v["Ward No"]}`;
+                wardMap[w] = (wardMap[w] || 0) + 1;
+            });
+            const sortedWards = Object.keys(wardMap).sort((a,b) => parseInt(a.replace('Ward ','')) - parseInt(b.replace('Ward ','')));
+            const wardCounts = sortedWards.map(w => wardMap[w]);
+
+            const ctxWard = document.getElementById('wardChart').getContext('2d');
+            if (wardChart) wardChart.destroy();
+            wardChart = new Chart(ctxWard, {
+                type: 'bar',
+                data: {
+                    labels: sortedWards,
+                    datasets: [{
+                        label: 'Voter Count',
+                        data: wardCounts,
+                        backgroundColor: '#1e40af',
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('voter-table-body');
+            tbody.innerHTML = '';
+
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageData = filteredVoters.slice(start, end);
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="p-6 text-center text-slate-400">No voter records found matching your filters.</td></tr>`;
+                return;
+            }
+
+            pageData.forEach(v => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-semibold text-center">${v["G.P. S.No"]}</td>
+                        <td class="p-3 font-mono text-blue-600 font-medium">${v["EPIC Voter ID"]}</td>
+                        <td class="p-3 font-medium">${v["Voter Name (Telugu)"]}</td>
+                        <td class="p-3 text-slate-600">${v["Voter Name (English)"]}</td>
+                        <td class="p-3 text-slate-500">${v["Relation Type"]}</td>
+                        <td class="p-3 text-slate-600">${v["Relative Name (Telugu)"]}</td>
+                        <td class="p-3 text-center font-semibold">${v["Age"]}</td>
+                        <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${String(v["Gender"]).toLowerCase() === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}">${v["Gender"]}</span></td>
+                        <td class="p-3 text-center font-mono">${v["House No"]}</td>
+                        <td class="p-3 text-center font-bold">W-${v["Ward No"]}</td>
+                    </tr>
+                `;
+            });
+
+            const totalPages = Math.ceil(filteredVoters.length / rowsPerPage) || 1;
+            document.getElementById('pagination-info').innerText = `Page ${currentPage} of ${totalPages} (${filteredVoters.length.toLocaleString()} total entries)`;
+            document.getElementById('prev-btn').disabled = currentPage === 1;
+            document.getElementById('next-btn').disabled = currentPage === totalPages;
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            renderTable();
+            window.scrollTo({ top: 400, behavior: 'smooth' });
+        }
+
+        function exportFilteredExcel() {
+            const ws = XLSX.utils.json_to_sheet(filteredVoters);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Filtered Voters");
+            XLSX.writeFile(wb, "Edepugallu_Filtered_Voters_2026.xlsx");
+        }
+
+        // Speech Recognition (Telugu & English)
+        let recognition = null;
+        function toggleVoiceSearch() {
+            const micBtn = document.getElementById('mic-btn');
+            const micIcon = document.getElementById('mic-icon');
+            const micText = document.getElementById('mic-text');
+            const transcriptDiv = document.getElementById('voice-transcript');
+
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Speech recognition is not supported in this browser. Please use Google Chrome.");
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'te-IN'; // Default to Telugu, handles English words too
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            micBtn.classList.add('mic-active');
+            micIcon.innerText = '🔴';
+            micText.innerText = 'Listening... Speak now';
+            transcriptDiv.classList.remove('hidden');
+            transcriptDiv.innerText = "Listening in Telugu / English...";
+
+            recognition.onresult = function(event) {
+                const speechToText = event.results[0][0].transcript;
+                document.getElementById('global-search').value = speechToText;
+                transcriptDiv.innerText = `Heard: "${speechToText}"`;
+                applyFilters();
+                stopMicUI();
+            };
+
+            recognition.onerror = function(event) {
+                console.error("Speech recognition error", event.error);
+                stopMicUI();
+            };
+
+            recognition.onend = function() {
+                stopMicUI();
+            };
+
+            recognition.start();
+        }
+
+        function stopMicUI() {
+            const micBtn = document.getElementById('mic-btn');
+            const micIcon = document.getElementById('mic-icon');
+            const micText = document.getElementById('mic-text');
+            micBtn.classList.remove('mic-active');
+            micIcon.innerText = '🎙️';
+            micText.innerText = 'Speech Search (Telugu/English)';
+        }
+    </script>
+</body>
+</html>
