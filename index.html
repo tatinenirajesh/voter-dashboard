@@ -58,7 +58,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <button id="mic-btn" onclick="toggleVoiceSearch()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg text-xs transition flex items-center gap-2 shadow-sm">
-                    <span id="mic-icon">🎙️</span> <span id="mic-text">Speech Search (Telugu/English)</span>
+                    <span id="mic-icon">🎙️</span> <span id="mic-text">Voice Search (Speak Name/House No)</span>
                 </button>
                 <div id="voice-transcript" class="text-xs italic text-blue-600 font-medium hidden">Listening...</div>
             </div>
@@ -438,7 +438,7 @@
             XLSX.writeFile(wb, "Edupugallu_Filtered_Voters_2026.xlsx");
         }
 
-        // Voice Search with Smart iOS Fallback
+        // Voice Search: Universal iOS & Android Engine (en-IN / en-US for Accurate Name Matching)
         let recognition = null;
         let isListening = false;
 
@@ -452,7 +452,7 @@
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
             if (!SpeechRecognition) {
-                alert("మొబైల్ బ్రౌజర్ లేదా ఐఫోన్ వ్యూలో వాయిస్ సెర్చ్ సపోర్ట్ లేదు. దయచేసి నేరుగా Safari బ్రౌజింగ్ యాప్‌లో ఓపెన్ చేయండి.");
+                alert("మొబైల్ బ్రౌజర్‌లో వాయిస్ సెర్చ్ సపోర్ట్ లేదు. దయచేసి నేరుగా టైప్ చేయండి.");
                 return;
             }
 
@@ -465,10 +465,9 @@
             try {
                 recognition = new SpeechRecognition();
                 
-                // Detect iOS vs Android to prevent WebKit language abort crashes
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                recognition.lang = isIOS ? 'en-US' : 'te-IN'; 
-
+                // Set to 'en-IN' (Indian English) so names and house numbers (e.g. Rama Rao, 1-42) 
+                // are recognized without mistranslation errors on both iPhone and Android.
+                recognition.lang = 'en-IN'; 
                 recognition.continuous = false;
                 recognition.interimResults = true;
 
@@ -476,9 +475,9 @@
                     isListening = true;
                     micBtn.classList.add('mic-active');
                     micIcon.innerText = '🔴';
-                    micText.innerText = 'Listening... Speak now';
+                    micText.innerText = 'Listening... Speak Name/House No';
                     transcriptDiv.classList.remove('hidden');
-                    transcriptDiv.innerText = isIOS ? "Listening (Speak English/Name)..." : "Listening in Telugu (తెలుగులో మాట్లాడండి)...";
+                    transcriptDiv.innerText = "Listening (Speak English / Name)...";
                 };
 
                 recognition.onresult = function(event) {
@@ -494,7 +493,7 @@
                 recognition.onerror = function(event) {
                     console.error("Speech recognition error", event.error);
                     if (event.error === 'not-allowed') {
-                        alert("మైక్రోఫోన్ పర్మిషన్ బ్లాక్ చేయబడింది. దయచేసి బ్రౌజర్ సెట్టింగ్స్‌లో Allow చేయండి.");
+                        alert("మైక్రోఫోన్ పర్మిషన్ బ్లాక్ చేయబడింది. బ్రౌజర్ సెట్టింగ్స్‌లో Allow చేయండి.");
                     }
                     stopMicUI();
                 };
@@ -519,7 +518,7 @@
 
             if (micBtn) micBtn.classList.remove('mic-active');
             if (micIcon) micIcon.innerText = '🎙️';
-            if (micText) micText.innerText = 'Speech Search (Telugu/English)';
+            if (micText) micText.innerText = 'Voice Search (Speak Name/House No)';
             
             setTimeout(() => {
                 if (!isListening && transcriptDiv) {
