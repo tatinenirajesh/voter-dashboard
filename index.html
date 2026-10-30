@@ -438,7 +438,7 @@
             XLSX.writeFile(wb, "Edupugallu_Filtered_Voters_2026.xlsx");
         }
 
-        // Voice Search (Forced Telugu Support - te-IN)
+        // Voice Search with Smart iOS Fallback
         let recognition = null;
         let isListening = false;
 
@@ -464,7 +464,11 @@
 
             try {
                 recognition = new SpeechRecognition();
-                recognition.lang = 'te-IN'; // Forces Telugu recognition language
+                
+                // Detect iOS vs Android to prevent WebKit language abort crashes
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                recognition.lang = isIOS ? 'en-US' : 'te-IN'; 
+
                 recognition.continuous = false;
                 recognition.interimResults = true;
 
@@ -474,7 +478,7 @@
                     micIcon.innerText = '🔴';
                     micText.innerText = 'Listening... Speak now';
                     transcriptDiv.classList.remove('hidden');
-                    transcriptDiv.innerText = "Listening in Telugu (తెలుగులో మాట్లాడండి)...";
+                    transcriptDiv.innerText = isIOS ? "Listening (Speak English/Name)..." : "Listening in Telugu (తెలుగులో మాట్లాడండి)...";
                 };
 
                 recognition.onresult = function(event) {
