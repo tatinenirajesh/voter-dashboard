@@ -438,7 +438,7 @@
             XLSX.writeFile(wb, "Edupugallu_Filtered_Voters_2026.xlsx");
         }
 
-        // Cross-Browser Mobile & Desktop Speech Recognition (iOS & Android Optimized)
+        // Voice Search (Forced Telugu Support - te-IN)
         let recognition = null;
         let isListening = false;
 
@@ -452,7 +452,7 @@
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
             if (!SpeechRecognition) {
-                alert("మొబైల్ బ్రౌజర్ లేదా ఐఫోన్ వ్యూలో వాయిస్ సెర్చ్ సపోర్ట్ లేదు. దయచేసి నేరుగా Safari బ్రౌజింగ్ యాప్‌లో ఓపెన్ చేయండి లేదా నేరుగా టైప్ చేయండి.");
+                alert("మొబైల్ బ్రౌజర్ లేదా ఐఫోన్ వ్యూలో వాయిస్ సెర్చ్ సపోర్ట్ లేదు. దయచేసి నేరుగా Safari బ్రౌజింగ్ యాప్‌లో ఓపెన్ చేయండి.");
                 return;
             }
 
@@ -464,8 +464,7 @@
 
             try {
                 recognition = new SpeechRecognition();
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                recognition.lang = isIOS ? 'en-US' : 'te-IN'; 
+                recognition.lang = 'te-IN'; // Forces Telugu recognition language
                 recognition.continuous = false;
                 recognition.interimResults = true;
 
@@ -475,7 +474,7 @@
                     micIcon.innerText = '🔴';
                     micText.innerText = 'Listening... Speak now';
                     transcriptDiv.classList.remove('hidden');
-                    transcriptDiv.innerText = isIOS ? "Listening (Speak English/Name)..." : "Listening in Telugu / English...";
+                    transcriptDiv.innerText = "Listening in Telugu (తెలుగులో మాట్లాడండి)...";
                 };
 
                 recognition.onresult = function(event) {
@@ -491,9 +490,7 @@
                 recognition.onerror = function(event) {
                     console.error("Speech recognition error", event.error);
                     if (event.error === 'not-allowed') {
-                        alert("ఐఫోన్ సఫారీ మైక్రోఫోన్ పర్మిషన్ బ్లాక్ చేయబడింది. దయచేసి iPhone Settings -> Safari -> Microphone లో Allow చేయండి.");
-                    } else if (event.error === 'service-not-allowed') {
-                        alert("యాప్ ఇన్‌సైడ్ లేదా పీడబ్ల్యూఏ మోడ్‌లో ఆపిల్ దీనిని అనుమతించదు. దయచేసి నేరుగా Safari బ్రౌజర్‌లో ఓపెన్ చేయండి.");
+                        alert("మైక్రోఫోన్ పర్మిషన్ బ్లాక్ చేయబడింది. దయచేసి బ్రౌజర్ సెట్టింగ్స్‌లో Allow చేయండి.");
                     }
                     stopMicUI();
                 };
@@ -505,7 +502,6 @@
                 recognition.start();
             } catch (err) {
                 console.error("Speech initialization exception:", err);
-                alert("ఐఫోన్‌లో మైక్రోఫోన్ సెషన్ ప్రారంభం కాలేదు. దయచేసి Safari బ్రౌజర్‌లో నేరుగా ప్రయత్నించండి.");
                 stopMicUI();
             }
         }
