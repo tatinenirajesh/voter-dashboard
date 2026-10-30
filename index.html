@@ -438,7 +438,7 @@
             XLSX.writeFile(wb, "Edupugallu_Filtered_Voters_2026.xlsx");
         }
 
-        // Cross-Browser Mobile & Desktop Speech Recognition (Telugu & English)
+        // Cross-Browser Mobile & Desktop Speech Recognition (iOS & Android Optimized)
         let recognition = null;
         let isListening = false;
 
@@ -452,53 +452,60 @@
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
             if (!SpeechRecognition) {
-                alert("Speech recognition is not supported in this browser. Please use Google Chrome or Safari.");
+                alert("మొబైల్ బ్రౌజర్ లేదా ఐఫోన్ వ్యూలో వాయిస్ సెర్చ్ సపోర్ట్ లేదు. దయచేసి నేరుగా Safari బ్రౌజింగ్ యాప్‌లో ఓపెన్ చేయండి లేదా నేరుగా టైప్ చేయండి.");
                 return;
             }
 
             if (isListening && recognition) {
-                recognition.stop();
+                try { recognition.stop(); } catch(e) {}
+                stopMicUI();
                 return;
             }
 
-            recognition = new SpeechRecognition();
-            recognition.lang = 'te-IN'; // Default to Telugu, handles English words too
-            recognition.continuous = false;
-            recognition.interimResults = true;
-
-            recognition.onstart = function() {
-                isListening = true;
-                micBtn.classList.add('mic-active');
-                micIcon.innerText = '🔴';
-                micText.innerText = 'Listening... Speak now';
-                transcriptDiv.classList.remove('hidden');
-                transcriptDiv.innerText = "Listening in Telugu / English...";
-            };
-
-            recognition.onresult = function(event) {
-                let speechToText = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    speechToText += event.results[i][0].transcript;
-                }
-                globalSearch.value = speechToText;
-                transcriptDiv.innerText = `Heard: "${speechToText}"`;
-                applyFilters();
-            };
-
-            recognition.onerror = function(event) {
-                console.error("Speech recognition error", event.error);
-                transcriptDiv.innerText = "Error recognizing speech. Try again.";
-                stopMicUI();
-            };
-
-            recognition.onend = function() {
-                stopMicUI();
-            };
-
             try {
+                recognition = new SpeechRecognition();
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                recognition.lang = isIOS ? 'en-US' : 'te-IN'; 
+                recognition.continuous = false;
+                recognition.interimResults = true;
+
+                recognition.onstart = function() {
+                    isListening = true;
+                    micBtn.classList.add('mic-active');
+                    micIcon.innerText = '🔴';
+                    micText.innerText = 'Listening... Speak now';
+                    transcriptDiv.classList.remove('hidden');
+                    transcriptDiv.innerText = isIOS ? "Listening (Speak English/Name)..." : "Listening in Telugu / English...";
+                };
+
+                recognition.onresult = function(event) {
+                    let speechToText = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        speechToText += event.results[i][0].transcript;
+                    }
+                    globalSearch.value = speechToText;
+                    transcriptDiv.innerText = `Heard: "${speechToText}"`;
+                    applyFilters();
+                };
+
+                recognition.onerror = function(event) {
+                    console.error("Speech recognition error", event.error);
+                    if (event.error === 'not-allowed') {
+                        alert("ఐఫోన్ సఫారీ మైక్రోఫోన్ పర్మిషన్ బ్లాక్ చేయబడింది. దయచేసి iPhone Settings -> Safari -> Microphone లో Allow చేయండి.");
+                    } else if (event.error === 'service-not-allowed') {
+                        alert("యాప్ ఇన్‌సైడ్ లేదా పీడబ్ల్యూఏ మోడ్‌లో ఆపిల్ దీనిని అనుమతించదు. దయచేసి నేరుగా Safari బ్రౌజర్‌లో ఓపెన్ చేయండి.");
+                    }
+                    stopMicUI();
+                };
+
+                recognition.onend = function() {
+                    stopMicUI();
+                };
+
                 recognition.start();
             } catch (err) {
-                console.error("Speech start error:", err);
+                console.error("Speech initialization exception:", err);
+                alert("ఐఫోన్‌లో మైక్రోఫోన్ సెషన్ ప్రారంభం కాలేదు. దయచేసి Safari బ్రౌజర్‌లో నేరుగా ప్రయత్నించండి.");
                 stopMicUI();
             }
         }
@@ -510,9 +517,9 @@
             const micText = document.getElementById('mic-text');
             const transcriptDiv = document.getElementById('voice-transcript');
 
-            micBtn.classList.remove('mic-active');
-            micIcon.innerText = '🎙️';
-            micText.innerText = 'Speech Search (Telugu/English)';
+            if (micBtn) micBtn.classList.remove('mic-active');
+            if (micIcon) micIcon.innerText = '🎙️';
+            if (micText) micText.innerText = 'Speech Search (Telugu/English)';
             
             setTimeout(() => {
                 if (!isListening && transcriptDiv) {
